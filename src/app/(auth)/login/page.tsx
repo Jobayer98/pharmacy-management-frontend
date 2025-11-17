@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserStore, Role } from "@/store/useUserStore";
+import { loginApi } from "@/lib/api/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,27 +14,35 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const login = () => {
+  const login = async () => {
     if (!email || !password) {
       toast.error("Email & password required");
       return;
     }
 
-    // Mock login
-    let selectedRole: Role = "admin";
+    setLoading(true);
 
-    if (email.includes("manager")) selectedRole = "manager";
-    if (email.includes("sales")) selectedRole = "sales";
+    try {
+      const response = await loginApi({ email, password });
 
-    setUser({
-      token: "mock-token-123",
-      role: selectedRole,
-      name: email.split("@")[0],
-    });
+      setUser({
+        token: response.access_token,
+        name: response.user.full_name,
+        email: response.user.email,
+        role: response.user.role,
+        userId: response.user.id,
+      });
 
-    toast.success(`Logged in as ${selectedRole}`);
-    router.push("/dashboard");
+      toast.success("Login successful");
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
