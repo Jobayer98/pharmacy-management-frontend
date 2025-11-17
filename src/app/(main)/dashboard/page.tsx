@@ -1,28 +1,38 @@
 "use client";
 
+import React, { useEffect } from "react";
 import { useUserStore } from "@/store/useUserStore";
+import { StatCard } from "@/components/StatCard";
 
 export default function DashboardPage() {
   const { role, setUser } = useUserStore();
 
-  // Quick mock: if no role set, set a default for dev
-  if (!role) {
-    setUser({ token: "mock-token", role: "admin", name: "Dev Admin" });
-  }
+  useEffect(() => {
+    if (!role) {
+      setUser({
+        token: "mock-token",
+        role: "admin",
+        name: "Dev Admin",
+      });
+    }
+  }, [role, setUser]);
 
   return (
-    <div>
-      <h3 className="text-2xl font-bold mb-4">Dashboard</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-white dark:bg-zinc-800 rounded shadow">
-          Total Medicine: <strong>128</strong>
-        </div>
-        <div className="p-4 bg-white dark:bg-zinc-800 rounded shadow">
-          Suppliers: <strong>12</strong>
-        </div>
-        <div className="p-4 bg-white dark:bg-zinc-800 rounded shadow">
-          Low Stock: <strong>5</strong>
-        </div>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">Dashboard</h1>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Medicines" value={128} icon="Box" />
+        <StatCard title="Suppliers" value={12} icon="Users" />
+        <StatCard title="Today Sales" value={"৳ 5,200"} icon="ShoppingCart" />
+        <StatCard title="Low Stock Items" value={5} icon="FileText" />
+      </div>
+
+      <div className="mt-8 p-6 rounded-xl bg-white dark:bg-zinc-900 shadow border dark:border-zinc-800">
+        <h2 className="text-xl font-semibold mb-4">Quick Overview</h2>
+        <p className="text-sm text-muted-foreground">
+          Charts and graphs will be added later when data is connected.
+        </p>
       </div>
     </div>
   );
