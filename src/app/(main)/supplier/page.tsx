@@ -1,49 +1,63 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  AddSupplierModal,
-  SupplierFormValues,
-} from "@/components/supplier/AddSupplierModal";
+  getSuppliers,
+  createSupplier,
+  type SupplierResponse,
+} from "@/lib/api/supplier";
+import { toast } from "sonner";
+import { AddSupplierModal } from "@/components/supplier/AddSupplierModal";
 
-interface Supplier {
-  id: number;
-  name: string;
-  phone: string;
-  company: string;
-}
-
-export default function SupplierPage() {
+export default function SuppliersPage() {
   const [open, setOpen] = useState(false);
+  const [editData, setEditData] = useState<SupplierResponse | null>(null);
   const [search, setSearch] = useState("");
-  const [list, setList] = useState<Supplier[]>([
-    { id: 1, name: "Rahim Traders", phone: "01711111111", company: "Square" },
-    { id: 2, name: "Medi House", phone: "01722222222", company: "Incepta" },
-  ]);
+  const [page] = useState(1);
+  const [limit] = useState(10);
 
-  const filtered = list.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const queryClient = useQueryClient();
 
-  const handleAdd = (data: SupplierFormValues) => {
-    setList((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        name: data.name,
-        phone: data.phone,
-        company: data.company,
-      },
-    ]);
+  // Fetch suppliers
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["suppliers", search, page, limit],
+    queryFn: () =>
+      getSuppliers({
+        search,
+        page,
+        limit,
+      }),
+  });
+
+  const items = data?.items ?? [];
+
+  const handleEdit = (supplier: SupplierResponse) => {
+    setEditData(supplier);
+    setOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this supplier?")) {
+      // TODO: delete API
+      toast.info("Delete API coming next...");
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Suppliers</h1>
-        <Button onClick={() => setOpen(true)}>+ Add Supplier</Button>
+        <Button
+          onClick={() => {
+            setEditData(null);
+            setOpen(true);
+          }}
+        >
+          + Add Supplier
+        </Button>
       </div>
 
       <Input
@@ -53,46 +67,73 @@ export default function SupplierPage() {
         className="max-w-sm"
       />
 
-      <div className="mt-4 bg-white dark:bg-zinc-900 rounded-xl shadow border dark:border-zinc-800 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 dark:bg-zinc-800">
-            <tr>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Phone</th>
-              <th className="p-3 text-left">Company</th>
-            </tr>
-          </thead>
+      {isLoading && <p>Loading...</p>}
+      {isError && <p>Error loading suppliers</p>}
 
-          <tbody>
-            {filtered.map((s) => (
-              <tr
-                key={s.id}
-                className="border-t dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
-              >
-                <td className="p-3">{s.name}</td>
-                <td className="p-3">{s.phone}</td>
-                <td className="p-3">{s.company}</td>
-              </tr>
-            ))}
-
-            {filtered.length === 0 && (
+      {!isLoading && (
+        <div className="mt-4 bg-white dark:bg-zinc-900 rounded-xl shadow border dark:border-zinc-800 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 dark:bg-zinc-800">
               <tr>
-                <td
-                  colSpan={3}
-                  className="p-4 text-center text-muted-foreground"
-                >
-                  No supplier found
-                </td>
+                <th className="p-3 text-left">Name</th>
+                <th className="p-3 text-left">Company</th>
+                <th className="p-3 text-left">Phone</th>
+                <th className="p-3 text-left">Email</th>
+                {/* <th className="p-3 text-left">Actions</th> */}
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody>
+              {items.map((s) => (
+                <tr
+                  key={s.id}
+                  className="border-t dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                >
+                  <td className="p-3">{s.name}</td>
+                  <td className="p-3">{s.company_name}</td>
+                  <td className="p-3">{s.phone}</td>
+                  <td className="p-3">{s.email}</td>
+                  {/* <td className="p-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEdit(s)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(s.id)}
+                    >
+                      Delete
+                    </Button>
+                  </td> */}
+                </tr>
+              ))}
+
+              {items.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="p-4 text-center text-muted-foreground"
+                  >
+                    No supplier found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AddSupplierModal
         open={open}
-        onClose={() => setOpen(false)}
-        onAdd={handleAdd}
+        onClose={() => {
+          setOpen(false);
+          setEditData(null);
+        }}
+        editData={editData}
       />
     </div>
   );

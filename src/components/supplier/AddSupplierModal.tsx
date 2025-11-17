@@ -1,88 +1,124 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createSupplier, type SupplierResponse } from "@/lib/api/supplier";
 
-export interface SupplierFormValues {
-  name: string;
-  phone: string;
-  company: string;
-}
-
-interface AddSupplierModalProps {
+interface SupplierModalProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (data: SupplierFormValues) => void;
+  editData?: SupplierResponse | null;
 }
 
-export const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
+export const AddSupplierModal: React.FC<SupplierModalProps> = ({
   open,
   onClose,
-  onAdd,
+  editData,
 }) => {
-  const [form, setForm] = useState<SupplierFormValues>({
+  const [form, setForm] = useState({
     name: "",
+    company_name: "",
     phone: "",
-    company: "",
+    email: "",
+    address: "",
   });
 
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: createSupplier,
+    onSuccess: () => {
+      toast.success("Supplier saved");
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+      onClose();
+    },
+    onError: () => toast.error("Failed to save supplier"),
+  });
+
+  useEffect(() => {
+    if (editData) {
+      setForm({
+        name: editData.name,
+        company_name: editData.company_name,
+        phone: editData.phone,
+        email: editData.email,
+        address: editData.address,
+      });
+    } else {
+      setForm({
+        name: "",
+        company_name: "",
+        phone: "",
+        email: "",
+        address: "",
+      });
+    }
+  }, [editData]);
+
   const handleSubmit = () => {
-    if (!form.name) {
-      toast.error("Supplier name is required");
+    if (!form.name || !form.company_name) {
+      toast.error("Name & company are required");
       return;
     }
 
-    onAdd(form);
-    toast.success("Supplier added");
-    onClose();
-    setForm({ name: "", phone: "", company: "" });
+    mutate(form);
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Supplier</DialogTitle>
+          <DialogTitle>
+            {editData ? "Edit Supplier" : "Add Supplier"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <label className="text-sm">Name</label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Supplier name"
-            />
-          </div>
+          <Input
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <Input
+            placeholder="Company Name"
+            value={form.company_name}
+            onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+          />
+          <Input
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+          <Input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <Input
+            placeholder="Address"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+          />
 
-          <div>
-            <label className="text-sm">Phone</label>
-            <Input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="017XXXXXXXX"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm">Company</label>
-            <Input
-              value={form.company}
-              onChange={(e) => setForm({ ...form, company: e.target.value })}
-              placeholder="Square, Acme..."
-            />
-          </div>
-
-          <Button className="w-full" onClick={handleSubmit}>
-            Save
+          <Button
+            className="w-full"
+            disabled={isPending}
+            onClick={handleSubmit}
+          >
+            {isPending
+              ? "Saving..."
+              : editData
+              ? "Update Supplier"
+              : "Save Supplier"}
           </Button>
         </div>
       </DialogContent>
