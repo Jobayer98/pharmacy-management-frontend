@@ -8,6 +8,12 @@ import {
   LogOut,
   Sun,
   Moon,
+  Pill,
+  TrendingUp,
+  PackageSearch,
+  Warehouse,
+  Receipt,
+  LayoutDashboard,
 } from "lucide-react";
 
 export const Icons = {
@@ -20,6 +26,12 @@ export const Icons = {
   LogOut,
   Sun,
   Moon,
+  Pill,
+  TrendingUp,
+  PackageSearch,
+  Warehouse,
+  Receipt,
+  LayoutDashboard,
 } as const;
 
 export type IconKey = keyof typeof Icons;
