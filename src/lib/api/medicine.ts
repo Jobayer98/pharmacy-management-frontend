@@ -17,6 +17,8 @@ export interface MedicineResponse {
     category: string | null;
     unit: string | null;
     strength: string;
+    price: number;
+    expiry_date: string;
 }
 
 // CREATE MEDICINE
