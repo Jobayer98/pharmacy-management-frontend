@@ -33,6 +33,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getMedicines } from "@/lib/api/medicine";
 import { getSuppliers } from "@/lib/api/supplier";
+import { getPurchases } from "@/lib/api/purchase";
 import { ExpiredModal } from "@/components/dashboard/ExpiredModal";
 
 export default function DashboardPage() {
@@ -92,6 +93,12 @@ export default function DashboardPage() {
   const { data: expired, isLoading: loadingExpired } = useQuery({
     queryKey: ["expired-items"],
     queryFn: () => getExpiredItem(),
+  });
+
+  // Recent purchases (first page, limit 5)
+  const { data: recentPurchases, isLoading: loadingPurchases } = useQuery({
+    queryKey: ["recent-purchases", 1, 5],
+    queryFn: () => getPurchases({ page: 1, limit: 5 }),
   });
 
   // derived numbers
@@ -297,7 +304,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Sales + Quick Report */}
+      {/* Recent Sales + Recent Purchases */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardContent>
@@ -329,9 +336,44 @@ export default function DashboardPage() {
 
         <Card>
           <CardContent>
+            <h3 className="text-lg font-semibold mb-4">Recent Purchases</h3>
+
+            {loadingPurchases && <p>Loading...</p>}
+
+            <div className="space-y-3">
+              {recentPurchases?.items?.map((p) => (
+                <div key={p.id} className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">
+                      {p.invoice_number} — {p.supplier_name}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {p.purchase_date}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-green-600">
+                    ৳ {p.total_amount}
+                  </div>
+                </div>
+              ))}
+
+              {recentPurchases?.items?.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No recent purchases
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Summary */}
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardContent>
             <h3 className="text-lg font-semibold mb-4">Quick Summary</h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
                 <p className="text-sm text-muted-foreground">Total Sales</p>
                 <div className="text-xl font-semibold">৳ {totalSales}</div>

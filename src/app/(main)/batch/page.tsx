@@ -53,14 +53,9 @@ export default function BatchPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Inventory / Batches</h1>
-        <Button
-          onClick={() => {
-            setEditData(null);
-            setOpen(true);
-          }}
-        >
-          + Add Batch
-        </Button>
+        <p className="text-sm text-muted-foreground">
+          Batches are created automatically from purchases
+        </p>
       </div>
 
       <Input
@@ -75,6 +70,12 @@ export default function BatchPage() {
 
       {!isLoading && (
         <div className="mt-4 bg-white dark:bg-zinc-900 rounded-xl shadow border dark:border-zinc-800 overflow-hidden">
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-b dark:border-zinc-800">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              💡 Batches are automatically created when you make a purchase. You
+              can edit or delete them here.
+            </p>
+          </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-100 dark:bg-zinc-800">
               <tr>
