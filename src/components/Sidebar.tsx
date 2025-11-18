@@ -42,6 +42,13 @@ const NAV_ITEMS: NavItem[] = [
     roles: ["admin", "manager"],
   },
   {
+    key: "batch",
+    label: "Batch",
+    href: "/batch",
+    icon: "FileText",
+    roles: ["admin", "manager"],
+  },
+  {
     key: "inventory",
     label: "Inventory",
     href: "/inventory",
