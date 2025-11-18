@@ -1,12 +1,21 @@
 // lib/api/dashboard.ts
 import api from "./axios";
 
+export interface GrandTotalStats {
+    total_medicines: number;
+    total_suppliers: number;
+    total_sales: number;
+    total_items_sold: number;
+    total_revenue: number;
+}
+
 export interface TodaySummary {
     date: string;
-    total_sales: number;
-    total_purchases: number;
-    total_invoices: number;
-    total_items_sold: number;
+    today_sales: number;
+    today_purchases: number;
+    today_invoices: number;
+    today_items_sold: number;
+    today_revenue: number;
 }
 
 export interface InventorySummary {
@@ -51,6 +60,11 @@ export interface SalesListResponse {
     };
 }
 
+export async function getGrandTotal() {
+    const res = await api.get("/dashboard");
+    return res.data.data as GrandTotalStats;
+}
+
 export async function getTodaySummary() {
     const res = await api.get("/dashboard/today");
     return res.data.data as TodaySummary;
@@ -62,7 +76,7 @@ export async function getInventorySummary() {
 }
 
 export async function getSales7Days() {
-    const res = await api.get("/dashboard/sales-7-days");
+    const res = await api.get("/reports/sales/sales-7-days");
     return res.data.data as DayAmount[];
 }
 
@@ -77,8 +91,32 @@ export async function getMonthlyReport(year: number, month: number) {
 }
 
 export async function getRecentSales(page = 1, limit = 5) {
-    const res = await api.get("/sales", { params: { page, limit } });
+    const res = await api.get("/reports/sales", { params: { page, limit } });
     return res.data.data as SalesListResponse;
+}
+
+export interface YearSummary {
+    year: number;
+    total_sales: number;
+    total_revenue: number;
+    total_items_sold: number;
+    total_sale_amount: number;
+}
+
+export interface SalesResponse {
+    items: SaleItemShort[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        pages: number;
+    };
+    year_summary: YearSummary;
+}
+
+export async function getSalesByYear(year: number, page = 1, limit = 10) {
+    const res = await api.get("/reports/sales", { params: { year, page, limit } });
+    return res.data.data as SalesResponse;
 }
 
 export async function getExpiredItem(){

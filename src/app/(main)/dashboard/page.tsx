@@ -11,6 +11,7 @@ import {
   getRecentSales,
   type DayAmount,
   getExpiredItem,
+  getGrandTotal,
 } from "@/lib/api/dashboard";
 
 import {
@@ -27,8 +28,6 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getMedicines } from "@/lib/api/medicine";
-import { getSuppliers } from "@/lib/api/supplier";
 import { getPurchases } from "@/lib/api/purchase";
 import { ExpiredModal } from "@/components/dashboard/ExpiredModal";
 import { LowStockModal } from "@/components/dashboard/LowStockModal";
@@ -43,21 +42,14 @@ export default function DashboardPage() {
     return { year: d.getFullYear(), month: d.getMonth() + 1 }; // 1-based month
   });
 
-  // Fetch medicine
-  const { data: medicines } = useQuery({
-    queryKey: ["medicines"],
-    queryFn: getMedicines,
+  // Grand total stats
+  const { data: grandTotal } = useQuery({
+    queryKey: ["dashboard-grand-total"],
+    queryFn: getGrandTotal,
   });
 
-  const TOTAL_MEDICINES = medicines?.length;
-
-  // Fetch suppliers
-  const { data: suppliers } = useQuery({
-    queryKey: ["suppliers"],
-    queryFn: () => getSuppliers({ page: 1, limit: 10 }),
-  });
-
-  const TOTAL_SUPPLIERS = suppliers?.items?.length;
+  const TOTAL_MEDICINES = grandTotal?.total_medicines ?? 0;
+  const TOTAL_SUPPLIERS = grandTotal?.total_suppliers ?? 0;
 
   // Today summary
   const { data: today, isLoading: loadingToday } = useQuery({
@@ -115,8 +107,9 @@ export default function DashboardPage() {
     monthly?.daily_breakdown?.map((d) => ({ date: d.date, total: d.total })) ??
     [];
 
-  // total sales (sum last 7 or monthly total) — use today's total_sales if available
-  const totalSales = today?.total_sales ?? monthly?.total_amount ?? 0;
+  // total sales from grand total
+  const totalSales = grandTotal?.total_sales ?? 0;
+  const totalRevenue = grandTotal?.total_revenue ?? 0;
 
   return (
     <div className="space-y-6">
@@ -136,12 +129,12 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Today's Sales"
-          value={loadingToday ? "..." : `৳ ${today?.total_sales ?? 0}`}
+          value={loadingToday ? "..." : `৳ ${today?.today_sales ?? 0}`}
           icon="ShoppingCart"
         />
         <StatCard
           title="Items Sold Today"
-          value={loadingToday ? "..." : today?.total_items_sold ?? 0}
+          value={loadingToday ? "..." : today?.today_items_sold ?? 0}
           icon="FileText"
         />
       </div>
@@ -432,32 +425,35 @@ export default function DashboardPage() {
           <CardContent>
             <h3 className="text-lg font-semibold mb-4">Quick Summary</h3>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
                 <p className="text-sm text-muted-foreground">Total Sales</p>
-                <div className="text-xl font-semibold">৳ {totalSales}</div>
+                <div className="text-xl font-semibold">{totalSales}</div>
               </div>
 
               <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
-                <p className="text-sm text-muted-foreground">Invoices Today</p>
+                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <div className="text-xl font-semibold">৳ {totalRevenue}</div>
+              </div>
+
+              <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
+                <p className="text-sm text-muted-foreground">Today's Sales</p>
                 <div className="text-xl font-semibold">
-                  {today?.total_invoices ?? 0}
+                  ৳ {today?.today_sales ?? 0}
+                </div>
+              </div>
+
+              <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
+                <p className="text-sm text-muted-foreground">Today's Revenue</p>
+                <div className="text-xl font-semibold">
+                  ৳ {today?.today_revenue ?? 0}
                 </div>
               </div>
 
               <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
                 <p className="text-sm text-muted-foreground">Today Purchases</p>
                 <div className="text-xl font-semibold">
-                  ৳ {today?.total_purchases ?? 0}
-                </div>
-              </div>
-
-              <div className="p-3 rounded bg-gray-50 dark:bg-zinc-800">
-                <p className="text-sm text-muted-foreground">
-                  Items Sold Today
-                </p>
-                <div className="text-xl font-semibold">
-                  {today?.total_items_sold ?? 0}
+                  ৳ {today?.today_purchases ?? 0}
                 </div>
               </div>
             </div>

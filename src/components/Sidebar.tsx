@@ -58,10 +58,17 @@ const NAV_ITEMS: NavItem[] = [
     roles: ["admin", "manager"],
   },
   {
+    key: "pos",
+    label: "POS",
+    href: "/pos",
+    icon: "TrendingUp",
+    roles: ["admin", "sales"],
+  },
+  {
     key: "sales",
     label: "Sales",
     href: "/sales",
-    icon: "TrendingUp",
+    icon: "BarChart3",
     roles: ["admin", "sales"],
   },
   {

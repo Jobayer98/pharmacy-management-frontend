@@ -8,7 +8,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { checkout } from "@/lib/api/sale";
 import { toast } from "sonner";
 
-export const CartPanel: React.FC = () => {
+interface CartPanelProps {
+  onCheckoutSuccess?: () => void;
+}
+
+export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
   const { items, increase, decrease, remove, clear } = useCartStore();
   const queryClient = useQueryClient();
 
@@ -20,6 +24,7 @@ export const CartPanel: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["batches-for-sale"] });
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       clear();
+      onCheckoutSuccess?.();
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || "Checkout failed");
@@ -46,42 +51,50 @@ export const CartPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-full md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow p-4 border dark:border-zinc-800 space-y-4">
-      <h2 className="text-lg font-semibold">Cart</h2>
-
+    <div className="space-y-4">
       {items.length === 0 && (
         <p className="text-sm text-muted-foreground">Cart is empty</p>
       )}
 
-      {items.map((i) => (
-        <div
-          key={i.id}
-          className="flex items-center justify-between border-b pb-2 dark:border-zinc-800"
-        >
-          <div>
-            <p className="font-medium">{i.name}</p>
-            <p className="text-sm text-muted-foreground">
-              ৳ {i.price} × {i.qty}
-            </p>
-          </div>
+      <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+        {items.map((i) => (
+          <div
+            key={i.id}
+            className="flex items-center justify-between border-b pb-2 dark:border-zinc-800"
+          >
+            <div>
+              <p className="font-medium">{i.name}</p>
+              <p className="text-sm text-muted-foreground">
+                ৳ {i.price} × {i.qty}
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => decrease(i.id)}>
-              -
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => increase(i.id)}>
-              +
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => remove(i.id)}
-            >
-              x
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => decrease(i.id)}
+              >
+                -
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => increase(i.id)}
+              >
+                +
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => remove(i.id)}
+              >
+                x
+              </Button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* Summary */}
       <div className="pt-4 border-t dark:border-zinc-800 space-y-1">

@@ -14,6 +14,7 @@ import {
   Warehouse,
   Receipt,
   LayoutDashboard,
+  BarChart3,
 } from "lucide-react";
 
 export const Icons = {
@@ -32,6 +33,7 @@ export const Icons = {
   Warehouse,
   Receipt,
   LayoutDashboard,
+  BarChart3,
 } as const;
 
 export type IconKey = keyof typeof Icons;
