@@ -1,18 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import {
+  getPharmacy,
+  updatePharmacy,
+  type PharmacyResponse,
+  type UpdatePharmacyRequest,
+} from "@/lib/api/settings";
 
 export default function SettingsPage() {
   const { name, role } = useUserStore();
+  const queryClient = useQueryClient();
 
-  const [pharmacy, setPharmacy] = useState({
-    name: "My Pharmacy",
-    address: "123 Main Street",
-    phone: "01700000000",
+  const [pharmacy, setPharmacy] = useState<UpdatePharmacyRequest>({
+    pharmacy_name: "",
+    invoice_footer: "",
+    email: "",
+    phone: "",
+    address: "",
   });
 
   const [profile, setProfile] = useState({
@@ -20,9 +31,48 @@ export default function SettingsPage() {
     email: "admin@example.com",
   });
 
+  // Fetch pharmacy data
+  const { data: pharmacyData, isLoading } = useQuery<PharmacyResponse>({
+    queryKey: ["pharmacy"],
+    queryFn: getPharmacy,
+  });
+
+  // Update pharmacy mutation
+  const updateMutation = useMutation({
+    mutationFn: updatePharmacy,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pharmacy"] });
+      toast.success("Settings saved successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to save settings");
+    },
+  });
+
+  // Load pharmacy data into form
+  useEffect(() => {
+    if (pharmacyData) {
+      setPharmacy({
+        pharmacy_name: pharmacyData.pharmacy_name,
+        invoice_footer: pharmacyData.invoice_footer,
+        email: pharmacyData.email,
+        phone: pharmacyData.phone,
+        address: pharmacyData.address,
+      });
+    }
+  }, [pharmacyData]);
+
   const saveSettings = () => {
-    toast.success("Settings saved (mock)");
+    updateMutation.mutate(pharmacy);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
@@ -34,17 +84,28 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm">Pharmacy Name</label>
+            <label className="text-sm font-medium">Pharmacy Name</label>
             <Input
-              value={pharmacy.name}
+              value={pharmacy.pharmacy_name}
               onChange={(e) =>
-                setPharmacy({ ...pharmacy, name: e.target.value })
+                setPharmacy({ ...pharmacy, pharmacy_name: e.target.value })
               }
             />
           </div>
 
           <div>
-            <label className="text-sm">Phone</label>
+            <label className="text-sm font-medium">Email</label>
+            <Input
+              type="email"
+              value={pharmacy.email}
+              onChange={(e) =>
+                setPharmacy({ ...pharmacy, email: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Phone</label>
             <Input
               value={pharmacy.phone}
               onChange={(e) =>
@@ -53,13 +114,25 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="md:col-span-2">
-            <label className="text-sm">Address</label>
+          <div>
+            <label className="text-sm font-medium">Address</label>
             <Input
               value={pharmacy.address}
               onChange={(e) =>
                 setPharmacy({ ...pharmacy, address: e.target.value })
               }
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium">Invoice Footer</label>
+            <Textarea
+              value={pharmacy.invoice_footer}
+              onChange={(e) =>
+                setPharmacy({ ...pharmacy, invoice_footer: e.target.value })
+              }
+              placeholder="Text to appear at the bottom of invoices"
+              rows={3}
             />
           </div>
         </div>
@@ -102,7 +175,9 @@ export default function SettingsPage() {
       )}
 
       <div>
-        <Button onClick={saveSettings}>Save Settings</Button>
+        <Button onClick={saveSettings} disabled={updateMutation.isPending}>
+          {updateMutation.isPending ? "Saving..." : "Save Settings"}
+        </Button>
       </div>
     </div>
   );
