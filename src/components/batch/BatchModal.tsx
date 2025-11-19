@@ -39,7 +39,7 @@ export const BatchModal: React.FC<BatchModalProps> = ({
   // fetch medicines
   const medicinesQuery = useQuery({
     queryKey: ["medicines-dropdown"],
-    queryFn: getMedicines,
+    queryFn: () => getMedicines(1, 1000),
   });
 
   // create mutation
@@ -167,7 +167,7 @@ export const BatchModal: React.FC<BatchModalProps> = ({
               className="w-full p-2 border rounded dark:bg-zinc-900 dark:border-zinc-800"
             >
               <option value="">Select Medicine</option>
-              {medicinesQuery.data?.map((m) => (
+              {medicinesQuery.data?.items?.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>

@@ -15,15 +15,17 @@ export const MedicineSearch: React.FC = () => {
 
   const { data } = useQuery({
     queryKey: ["medicines"],
-    queryFn: getMedicines,
+    queryFn: () => getMedicines(1, 1000),
   });
 
-  const list = data?.filter((m) =>
+  const medicines = data?.items ?? [];
+
+  const list = medicines.filter((m) =>
     m.name.toLowerCase().includes(query.toLowerCase())
   );
 
   const handleBarcodeScan = (barcode: string) => {
-    const medicine = data?.find((m) => m.barcode === barcode);
+    const medicine = medicines.find((m) => m.barcode === barcode);
 
     if (medicine) {
       addToCart(medicine);

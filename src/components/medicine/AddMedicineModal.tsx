@@ -30,6 +30,8 @@ export interface MedicineFormValues {
   category: string;
   unit: string;
   strength: string;
+  barcode: string;
+  image_url: string;
 }
 
 export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
@@ -44,6 +46,8 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
     category: "",
     unit: "",
     strength: "",
+    barcode: "",
+    image_url: "",
   });
 
   const UNIT_OPTIONS = ["Strip", "Bottle", "Piece", "ML"];
@@ -88,6 +92,8 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
         category: editData.category || "",
         unit: editData.unit || "",
         strength: editData.strength,
+        barcode: editData.barcode || "",
+        image_url: "",
       });
     } else {
       setForm({
@@ -97,6 +103,8 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
         category: "",
         unit: "",
         strength: "",
+        barcode: "",
+        image_url: "",
       });
     }
   }, [editData]);
@@ -114,6 +122,8 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
       category: form.category || null,
       unit: form.unit || null,
       strength: form.strength,
+      barcode: form.barcode || null,
+      image_url: form.image_url || null,
     };
 
     if (editData) {
@@ -127,14 +137,14 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {editData ? "Edit Medicine" : "Add Medicine"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           {/* Name */}
           <div>
             <label className="text-sm">Medicine Name</label>
@@ -209,6 +219,28 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
             />
           </div>
 
+          {/* Barcode */}
+          <div>
+            <label className="text-sm">Barcode</label>
+            <Input
+              value={form.barcode}
+              onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+              placeholder="8940001280419"
+            />
+          </div>
+
+          {/* Image URL */}
+          <div>
+            <label className="text-sm">Image URL</label>
+            <Input
+              value={form.image_url}
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t mt-4">
           <Button
             className="w-full"
             onClick={handleSubmit}

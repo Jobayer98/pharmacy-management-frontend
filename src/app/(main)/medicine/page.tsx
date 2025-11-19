@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddMedicineModal } from "@/components/medicine/AddMedicineModal";
+import { BulkImportModal } from "@/components/medicine/BulkImportModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getMedicines,
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 
 export default function MedicinePage() {
   const [open, setOpen] = useState(false);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editData, setEditData] = useState<MedicineResponse | null>(null);
@@ -72,14 +74,19 @@ export default function MedicinePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Medicine List</h1>
-        <Button
-          onClick={() => {
-            setEditData(null); // reset edit data
-            setOpen(true);
-          }}
-        >
-          + Add Medicine
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setBulkImportOpen(true)}>
+            Bulk Import
+          </Button>
+          <Button
+            onClick={() => {
+              setEditData(null); // reset edit data
+              setOpen(true);
+            }}
+          >
+            + Add Medicine
+          </Button>
+        </div>
       </div>
 
       <Input
@@ -117,6 +124,15 @@ export default function MedicinePage() {
                   <td className="p-3">{m.strength}</td>
 
                   <td className="p-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        (window.location.href = `/medicine/${m.id}`)
+                      }
+                    >
+                      View
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -220,6 +236,11 @@ export default function MedicinePage() {
           setEditData(null); // reset form after close
         }}
         editData={editData}
+      />
+
+      <BulkImportModal
+        open={bulkImportOpen}
+        onClose={() => setBulkImportOpen(false)}
       />
     </div>
   );

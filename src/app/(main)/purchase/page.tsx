@@ -33,10 +33,12 @@ export default function PurchasePage() {
   const queryClient = useQueryClient();
 
   // Fetch medicines
-  const { data: medicines } = useQuery({
+  const { data: medicinesData } = useQuery({
     queryKey: ["medicines"],
-    queryFn: getMedicines,
+    queryFn: () => getMedicines(1, 1000),
   });
+
+  const medicines = medicinesData?.items ?? [];
 
   // Fetch suppliers
   const { data: suppliersData } = useQuery({
@@ -78,7 +80,7 @@ export default function PurchasePage() {
       return;
     }
 
-    const medicine = medicines?.find((m) => m.id === Number(medicineId));
+    const medicine = medicines.find((m) => m.id === Number(medicineId));
     if (!medicine) {
       toast.error("Invalid medicine selected");
       return;
@@ -198,7 +200,7 @@ export default function PurchasePage() {
               className="w-full p-2 rounded border dark:bg-zinc-900 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select medicine...</option>
-              {medicines?.map((m) => (
+              {medicines.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name} - {m.generic_name || "N/A"}
                 </option>

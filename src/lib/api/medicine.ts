@@ -7,6 +7,8 @@ export interface MedicinePayload {
     category?: string | null;
     unit?: string | null;
     strength: string;
+    barcode?: string | null;
+    image_url?: string | null;
 }
 
 export interface MedicineResponse {
@@ -22,6 +24,18 @@ export interface MedicineResponse {
     barcode?: string | null;
 }
 
+export interface MedicineDetailResponse {
+    id: number;
+    name: string;
+    generic_name: string | null;
+    brand: string | null;
+    category: string | null;
+    unit: string | null;
+    strength: string;
+    barcode: string | null;
+    image_url: string | null;
+}
+
 export interface MedicinePaginationResponse {
     items: MedicineResponse[];
     pagination: {
@@ -34,7 +48,7 @@ export interface MedicinePaginationResponse {
 
 // CREATE MEDICINE
 export async function createMedicine(payload: MedicinePayload) {
-    const res = await api.post("/medicines/create", payload);
+    const res = await api.post("/medicines", payload);
     return res.data.data as MedicineResponse;
 }
 
@@ -62,5 +76,17 @@ export async function updateMedicine(id: number, payload: MedicinePayload) {
 // DELETE
 export async function deleteMedicine(id: number) {
     const res = await api.delete(`/medicines/${id}`);
+    return res.data.data;
+}
+
+// GET MEDICINE DETAIL
+export async function getMedicineDetail(id: number) {
+    const res = await api.get(`/medicines/${id}`);
+    return res.data.data as MedicineDetailResponse;
+}
+
+// BULK CREATE MEDICINES
+export async function createMedicinesBulk(medicines: MedicinePayload[]) {
+    const res = await api.post("/medicines/bulk-create", { medicines });
     return res.data.data;
 }
