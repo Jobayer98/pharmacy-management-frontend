@@ -46,14 +46,8 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
     strength: "",
   });
 
-  const UNIT_OPTIONS = ["Tablet", "Strip", "Bottle", "Capsule", "Syrup"];
-  const CATEGORY_OPTIONS = [
-    "Painkiller",
-    "Antibiotic",
-    "Anti Acid",
-    "Vitamin",
-    "Others",
-  ];
+  const UNIT_OPTIONS = ["Strip", "Bottle", "Piece", "ML"];
+  const CATEGORY_OPTIONS = ["Tablet", "Capsule", "Syrup", "Ijection"];
 
   const queryClient = useQueryClient();
 

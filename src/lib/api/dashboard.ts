@@ -92,7 +92,7 @@ export async function getMonthlyReport(year: number, month: number) {
     return res.data.data as MonthlyReport;
 }
 
-export async function getRecentSales(page = 1, limit = 5) {
+export async function getRecentSales(page = 1, limit = 4) {
     const res = await api.get("/reports/sales", { params: { page, limit } });
     return res.data.data as SalesListResponse;
 }

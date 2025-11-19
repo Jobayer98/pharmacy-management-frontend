@@ -77,8 +77,8 @@ export default function DashboardPage() {
 
   // Recent sales (first page, limit 3)
   const { data: recentSales, isLoading: loadingRecent } = useQuery({
-    queryKey: ["recent-sales", 1, 3],
-    queryFn: () => getRecentSales(1, 3),
+    queryKey: ["recent-sales", 1, 4],
+    queryFn: () => getRecentSales(1, 4),
   });
 
   // Expired items
@@ -89,8 +89,8 @@ export default function DashboardPage() {
 
   // Recent purchases (first page, limit 3)
   const { data: recentPurchases, isLoading: loadingPurchases } = useQuery({
-    queryKey: ["recent-purchases", 1, 3],
-    queryFn: () => getPurchases({ page: 1, limit: 3 }),
+    queryKey: ["recent-purchases", 1, 4],
+    queryFn: () => getPurchases(1, 4),
   });
 
   // derived numbers

@@ -147,7 +147,15 @@ export default function PurchasePage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <h1 className="text-2xl font-semibold">New Purchase</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">New Purchase</h1>
+        <Button
+          variant="outline"
+          onClick={() => (window.location.href = "/purchase/history")}
+        >
+          View Purchase History
+        </Button>
+      </div>
 
       {/* Supplier & Date Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-zinc-900 p-6 rounded-xl shadow border dark:border-zinc-800">
