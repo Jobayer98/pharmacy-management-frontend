@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { RenderIcon } from "./icons";
 import { useUserStore } from "@/store/useUserStore";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -90,6 +91,9 @@ const NAV_ITEMS: NavItem[] = [
 export const Sidebar: React.FC = () => {
   const { role, name, logout } = useUserStore();
   const { isOpen, close } = useSidebar();
+  const pathname = usePathname();
+
+  const isActive = (href: string) => pathname === href;
 
   return (
     <>
@@ -127,16 +131,26 @@ export const Sidebar: React.FC = () => {
         <nav className="space-y-1">
           {NAV_ITEMS.filter(
             (item) => !item.roles || item.roles.includes(role as any)
-          ).map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800"
-            >
-              <RenderIcon name={item.icon} />
-              <span className="text-sm">{item.label}</span>
-            </Link>
-          ))}
+          ).map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className={`
+                  flex items-center gap-3 p-2 rounded-md transition-colors
+                  ${
+                    active
+                      ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-medium"
+                      : "hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  }
+                `}
+              >
+                <RenderIcon name={item.icon} />
+                <span className="text-sm">{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mt-8 pt-6 border-t dark:border-zinc-800">

@@ -15,6 +15,8 @@ interface CartPanelProps {
 export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
   const { items, increase, decrease, remove, clear } = useCartStore();
   const queryClient = useQueryClient();
+  const [discount, setDiscount] = useState<string>("");
+  const [showDiscount, setShowDiscount] = useState<boolean>(false);
 
   const { mutate: handleCheckout, isPending } = useMutation({
     mutationFn: checkout,
@@ -24,6 +26,8 @@ export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
       queryClient.invalidateQueries({ queryKey: ["batches-for-sale"] });
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       clear();
+      setDiscount("");
+      setShowDiscount(false);
       onCheckoutSuccess?.();
     },
     onError: (err: any) => {
@@ -32,8 +36,16 @@ export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
   });
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const discount = 0; // future
-  const total = subtotal - discount;
+  const discountAmount = parseFloat(discount) || 0;
+  const total = Math.max(0, subtotal - discountAmount);
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and decimal point
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setDiscount(value);
+    }
+  };
 
   const handleSubmit = () => {
     if (items.length === 0) {
@@ -43,6 +55,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
 
     handleCheckout({
       customer_name: "Walk-in Customer",
+      discount_amount: discountAmount,
       items: items.map((item) => ({
         medicine_id: item.id,
         quantity: item.qty,
@@ -97,15 +110,43 @@ export const CartPanel: React.FC<CartPanelProps> = ({ onCheckoutSuccess }) => {
       </div>
 
       {/* Summary */}
-      <div className="pt-4 border-t dark:border-zinc-800 space-y-1">
+      <div className="pt-4 border-t dark:border-zinc-800 space-y-3">
         <div className="flex justify-between text-sm">
           <span>Subtotal:</span>
           <span>৳ {subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span>Discount:</span>
-          <span>৳ {discount.toFixed(2)}</span>
-        </div>
+
+        {/* Discount Toggle Button */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setShowDiscount(!showDiscount);
+            if (showDiscount) {
+              setDiscount("");
+            }
+          }}
+          className="w-full"
+        >
+          {showDiscount ? "Remove Discount" : "Add Discount"}
+        </Button>
+
+        {/* Discount Input - Conditionally Rendered */}
+        {showDiscount && (
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Discount Amount</label>
+            <Input
+              type="text"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={discount}
+              onChange={handleDiscountChange}
+              className="text-right"
+            />
+          </div>
+        )}
+
         <div className="flex justify-between text-lg font-semibold pt-2 border-t dark:border-zinc-800">
           <span>Total:</span>
           <span>৳ {total.toFixed(2)}</span>

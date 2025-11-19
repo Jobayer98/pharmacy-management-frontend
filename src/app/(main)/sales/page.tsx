@@ -237,6 +237,8 @@ export default function SalesPage() {
                       <th className="text-left py-3 px-4">Invoice Number</th>
                       <th className="text-left py-3 px-4">Customer Name</th>
                       <th className="text-left py-3 px-4">Sale Date</th>
+                      <th className="text-right py-3 px-4">Discount</th>
+                      <th className="text-right py-3 px-4">Sub-total Amount</th>
                       <th className="text-right py-3 px-4">Total Amount</th>
                     </tr>
                   </thead>
@@ -248,6 +250,12 @@ export default function SalesPage() {
                         </td>
                         <td className="py-3 px-4">{sale.customer_name}</td>
                         <td className="py-3 px-4">{sale.sale_date}</td>
+                        <td className="py-3 px-4 text-right">
+                          ৳ {sale.discount_amount}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          ৳ {sale.subtotal}
+                        </td>
                         <td className="py-3 px-4 text-right font-semibold">
                           ৳ {sale.total_amount}
                         </td>

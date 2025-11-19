@@ -43,6 +43,8 @@ export interface MonthlyReport {
 }
 
 export interface SaleItemShort {
+    discount_amount: number;
+    subtotal: number;
     id: number;
     invoice_number: string;
     customer_name: string;
