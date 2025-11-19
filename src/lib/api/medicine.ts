@@ -22,17 +22,35 @@ export interface MedicineResponse {
     barcode?: string | null;
 }
 
+export interface MedicinePaginationResponse {
+    items: MedicineResponse[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        pages: number;
+    };
+}
+
 // CREATE MEDICINE
 export async function createMedicine(payload: MedicinePayload) {
     const res = await api.post("/medicines/create", payload);
     return res.data.data as MedicineResponse;
 }
 
-// GET ALL MEDICINES
-export async function getMedicines() {
-    const res = await api.get("/medicines");
-    console.log(res.data.data);
-    return res.data.data.items as MedicineResponse[];
+// GET ALL MEDICINES WITH PAGINATION
+export async function getMedicines(page: number = 1, limit: number = 10, search?: string) {
+    const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+    });
+
+    if (search) {
+        params.append('search', search);
+    }
+
+    const res = await api.get(`/medicines?${params.toString()}`);
+    return res.data.data as MedicinePaginationResponse;
 }
 
 // UPDATE

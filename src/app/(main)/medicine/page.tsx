@@ -15,17 +15,20 @@ import { toast } from "sonner";
 export default function MedicinePage() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [editData, setEditData] = useState<MedicineResponse | null>(null);
+  const limit = 10;
 
   const queryClient = useQueryClient();
 
   // FETCH LIST
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["medicines"],
-    queryFn: getMedicines,
+    queryKey: ["medicines", currentPage, limit, search],
+    queryFn: () => getMedicines(currentPage, limit, search),
   });
 
-  const list = data ?? [];
+  const list = data?.items ?? [];
+  const pagination = data?.pagination;
 
   // DELETE MUTATION
   const deleteMutation = useMutation({
@@ -50,9 +53,20 @@ export default function MedicinePage() {
     }
   };
 
-  const filtered = list.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (pagination && currentPage < pagination.pages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +85,7 @@ export default function MedicinePage() {
       <Input
         placeholder="Search medicine..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => handleSearch(e.target.value)}
         className="max-w-sm"
       />
 
@@ -92,7 +106,7 @@ export default function MedicinePage() {
             </thead>
 
             <tbody>
-              {filtered.map((m) => (
+              {list.map((m) => (
                 <tr
                   key={m.id}
                   className="border-t dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
@@ -122,7 +136,7 @@ export default function MedicinePage() {
                 </tr>
               ))}
 
-              {filtered.length === 0 && (
+              {list.length === 0 && (
                 <tr>
                   <td
                     colSpan={5}
@@ -134,6 +148,68 @@ export default function MedicinePage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {pagination && pagination.total > 0 && (
+            <div className="flex items-center justify-between p-4 border-t dark:border-zinc-800">
+              <div className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * limit + 1} to{" "}
+                {Math.min(currentPage * limit, pagination.total)} of{" "}
+                {pagination.total} results
+              </div>
+
+              {pagination.pages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: pagination.pages }, (_, i) => i + 1)
+                      .filter(
+                        (page) =>
+                          page === 1 ||
+                          page === pagination.pages ||
+                          Math.abs(page - currentPage) <= 1
+                      )
+                      .map((page, idx, arr) => (
+                        <>
+                          {idx > 0 && arr[idx - 1] !== page - 1 && (
+                            <span key={`ellipsis-${page}`} className="px-2">
+                              ...
+                            </span>
+                          )}
+                          <Button
+                            key={page}
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        </>
+                      ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === pagination.pages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
