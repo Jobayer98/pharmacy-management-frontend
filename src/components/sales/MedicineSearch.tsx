@@ -6,13 +6,14 @@ import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/button";
 import { getMedicines } from "@/lib/api/medicine";
 import { useQuery } from "@tanstack/react-query";
+import { BarcodeScanner } from "./BarcodeScanner";
+import { toast } from "sonner";
 
 export const MedicineSearch: React.FC = () => {
   const [query, setQuery] = useState("");
   const { addToCart } = useCartStore();
 
-  // FETCH LIST
-  const { data, isLoading, isError } = useQuery({
+  const { data } = useQuery({
     queryKey: ["medicines"],
     queryFn: getMedicines,
   });
@@ -21,13 +22,28 @@ export const MedicineSearch: React.FC = () => {
     m.name.toLowerCase().includes(query.toLowerCase())
   );
 
+  const handleBarcodeScan = (barcode: string) => {
+    const medicine = data?.find((m) => m.barcode === barcode);
+
+    if (medicine) {
+      addToCart(medicine);
+      toast.success(`${medicine.name} added to cart`);
+    } else {
+      toast.error(`No medicine found with barcode: ${barcode}`);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search medicine..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+      <div className="flex gap-2">
+        <Input
+          placeholder="Search medicine..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1"
+        />
+        <BarcodeScanner onScan={handleBarcodeScan} />
+      </div>
 
       <div className="space-y-2">
         {list?.map((m) => (

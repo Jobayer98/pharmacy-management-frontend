@@ -19,6 +19,7 @@ export interface MedicineResponse {
     strength: string;
     price: number;
     expiry_date: string;
+    barcode?: string | null;
 }
 
 // CREATE MEDICINE
