@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import { MedicineSelector } from "@/components/purchase/MedicineSelector";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPurchase } from "@/lib/api/purchase";
@@ -194,18 +195,12 @@ export default function PurchasePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Medicine *</label>
-            <select
+            <MedicineSelector
+              medicines={medicines}
               value={medicineId}
-              onChange={(e) => setMedicineId(e.target.value)}
-              className="w-full p-2 rounded border dark:bg-zinc-900 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select medicine...</option>
-              {medicines.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} - {m.generic_name || "N/A"}
-                </option>
-              ))}
-            </select>
+              onChange={setMedicineId}
+              placeholder="Search and select medicine..."
+            />
           </div>
 
           <div className="space-y-2">
