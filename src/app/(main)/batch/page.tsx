@@ -12,23 +12,19 @@ export default function BatchPage() {
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState<BatchResponse | null>(null);
   const [search, setSearch] = useState("");
-  const [page] = useState(1);
-  const [limit] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 10;
 
   const queryClient = useQueryClient();
 
   // GET batches
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["batches", search, page, limit],
-    queryFn: () =>
-      getBatches({
-        search,
-        page,
-        limit,
-      }),
+    queryKey: ["batches", currentPage, limit, search],
+    queryFn: () => getBatches(currentPage, limit, search),
   });
 
   const items = data?.items ?? [];
+  const pagination = data?.pagination;
 
   const deleteMutation = useMutation({
     mutationFn: deleteBatch,
@@ -49,6 +45,21 @@ export default function BatchPage() {
     }
   };
 
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (pagination && currentPage < pagination.pages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -61,7 +72,7 @@ export default function BatchPage() {
       <Input
         placeholder="Search batch..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => handleSearch(e.target.value)}
         className="max-w-sm"
       />
 
@@ -133,6 +144,68 @@ export default function BatchPage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {pagination && pagination.total > 0 && (
+            <div className="flex items-center justify-between p-4 border-t dark:border-zinc-800">
+              <div className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * limit + 1} to{" "}
+                {Math.min(currentPage * limit, pagination.total)} of{" "}
+                {pagination.total} results
+              </div>
+
+              {pagination.pages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: pagination.pages }, (_, i) => i + 1)
+                      .filter(
+                        (page) =>
+                          page === 1 ||
+                          page === pagination.pages ||
+                          Math.abs(page - currentPage) <= 1
+                      )
+                      .map((page, idx, arr) => (
+                        <>
+                          {idx > 0 && arr[idx - 1] !== page - 1 && (
+                            <span key={`ellipsis-${page}`} className="px-2">
+                              ...
+                            </span>
+                          )}
+                          <Button
+                            key={page}
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        </>
+                      ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === pagination.pages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

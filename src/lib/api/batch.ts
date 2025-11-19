@@ -20,22 +20,33 @@ export interface BatchResponse {
     medicine_name?: string;
 }
 
+export interface BatchPaginationResponse {
+    items: BatchResponse[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        pages: number;
+    };
+}
+
 export async function createBatch(payload: BatchPayload) {
     const res = await api.post("/batches/create", payload);
     return res.data.data as BatchResponse;
 }
 
-export async function getBatches(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-}) {
-    const res = await api.get("/batches", { params });
+export async function getBatches(page: number = 1, limit: number = 10, search?: string) {
+    const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+    });
 
-    return {
-        items: res.data.data.items as BatchResponse[],
-        pagination: res.data.data.pagination,
-    };
+    if (search) {
+        params.append('search', search);
+    }
+
+    const res = await api.get(`/batches?${params.toString()}`);
+    return res.data.data as BatchPaginationResponse;
 }
 
 export async function getBatch(id: number) {
