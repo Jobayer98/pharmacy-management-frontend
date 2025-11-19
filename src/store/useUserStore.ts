@@ -6,7 +6,6 @@ export type Role = "admin" | "manager" | "sales" | string | null;
 
 interface UserState {
     token: string | null;
-    refreshToken: string | null;
     expiresAt: number | null;
     role: Role;
     name: string | null;
@@ -16,7 +15,6 @@ interface UserState {
 
     setUser: (payload: {
         token: string;
-        refreshToken: string;
         expiresIn: number;
         role: Role;
         name: string;
@@ -24,8 +22,10 @@ interface UserState {
         userId: number;
     }) => void;
 
+    updateToken: (token: string, expiresIn: number) => void;
     logout: () => void;
     isTokenExpired: () => boolean;
+    shouldRefreshToken: () => boolean;
     setHasHydrated: (state: boolean) => void;
 }
 
@@ -33,7 +33,6 @@ export const useUserStore = create<UserState>()(
     persist(
         (set, get) => ({
             token: null,
-            refreshToken: null,
             expiresAt: null,
             role: null,
             name: null,
@@ -41,15 +40,19 @@ export const useUserStore = create<UserState>()(
             userId: null,
             _hasHydrated: false,
 
-            setUser: ({ token, refreshToken, expiresIn, role, name, email, userId }) => {
+            setUser: ({ token, expiresIn, role, name, email, userId }) => {
                 const expiresAt = Date.now() + expiresIn * 1000;
-                set(() => ({ token, refreshToken, expiresAt, role, name, email, userId }));
+                set(() => ({ token, expiresAt, role, name, email, userId }));
+            },
+
+            updateToken: (token: string, expiresIn: number) => {
+                const expiresAt = Date.now() + expiresIn * 1000;
+                set(() => ({ token, expiresAt }));
             },
 
             logout: () => {
                 set(() => ({
                     token: null,
-                    refreshToken: null,
                     expiresAt: null,
                     role: null,
                     name: null,
@@ -74,6 +77,17 @@ export const useUserStore = create<UserState>()(
                 // Fallback to stored expiration time
                 if (!expiresAt) return true;
                 return Date.now() >= expiresAt;
+            },
+
+            shouldRefreshToken: () => {
+                const { token, expiresAt } = get();
+                if (!token || !expiresAt) return false;
+
+                // Refresh token 3 minutes (180 seconds) before expiration
+                const refreshThreshold = 3 * 60 * 1000; // 3 minutes in milliseconds
+                const timeUntilExpiry = expiresAt - Date.now();
+
+                return timeUntilExpiry <= refreshThreshold && timeUntilExpiry > 0;
             },
 
             setHasHydrated: (state) => {

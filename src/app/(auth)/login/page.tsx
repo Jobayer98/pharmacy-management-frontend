@@ -31,7 +31,6 @@ export default function LoginPage() {
 
       setUser({
         token: response.access_token,
-        refreshToken: response.refresh_token,
         expiresIn: response.expires_in,
         name: response.user.full_name,
         email: response.user.email,

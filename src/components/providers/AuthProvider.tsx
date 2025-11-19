@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
+import { refreshTokenApi } from "@/lib/api/auth";
+import { toast } from "sonner";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { token, _hasHydrated, isTokenExpired, logout } = useUserStore();
+  const {
+    token,
+    _hasHydrated,
+    isTokenExpired,
+    shouldRefreshToken,
+    updateToken,
+    logout,
+  } = useUserStore();
+  const isRefreshing = useRef(false);
 
   // Handle route protection
   useEffect(() => {
@@ -50,12 +60,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [_hasHydrated, token, pathname, router, isTokenExpired, logout]);
 
-  // Auto logout check every minute
+  // Auto token refresh - check every 30 seconds
+  useEffect(() => {
+    if (!token) return;
+
+    const handleTokenRefresh = async () => {
+      // Prevent multiple simultaneous refresh attempts
+      if (isRefreshing.current) return;
+
+      if (shouldRefreshToken()) {
+        isRefreshing.current = true;
+        try {
+          // No payload needed - refresh token is in HttpOnly cookie
+          const response = await refreshTokenApi();
+          updateToken(response.access_token, response.expires_in);
+          console.log("Token refreshed successfully");
+        } catch (error: any) {
+          console.error("Token refresh failed:", error);
+          // If refresh fails, logout user
+          if (
+            error?.response?.status === 401 ||
+            error?.response?.status === 400
+          ) {
+            toast.error("Session expired. Please login again.");
+            logout();
+          }
+        } finally {
+          isRefreshing.current = false;
+        }
+      }
+    };
+
+    // Check immediately
+    handleTokenRefresh();
+
+    // Then check every 30 seconds
+    const interval = setInterval(handleTokenRefresh, 30000);
+
+    return () => clearInterval(interval);
+  }, [token, shouldRefreshToken, updateToken, logout]);
+
+  // Auto logout check if token is expired
   useEffect(() => {
     if (!token) return;
 
     const interval = setInterval(() => {
       if (isTokenExpired()) {
+        toast.error("Session expired. Please login again.");
         logout();
       }
     }, 60000); // Check every minute
