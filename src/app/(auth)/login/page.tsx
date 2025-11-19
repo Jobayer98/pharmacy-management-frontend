@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useUserStore, Role } from "@/store/useUserStore";
+import { useUserStore } from "@/store/useUserStore";
 import { loginApi } from "@/lib/api/auth";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const login = async () => {
     if (!email || !password) {
@@ -29,6 +31,8 @@ export default function LoginPage() {
 
       setUser({
         token: response.access_token,
+        refreshToken: response.refresh_token,
+        expiresIn: response.expires_in,
         name: response.user.full_name,
         email: response.user.email,
         role: response.user.role,
@@ -42,6 +46,18 @@ export default function LoginPage() {
       toast.error(error?.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAutoFill = () => {
+    setEmail("admin@example.com");
+    setPassword("admin123");
+    toast.info("Admin credentials filled");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      login();
     }
   };
 
@@ -60,22 +76,60 @@ export default function LoginPage() {
               placeholder="admin@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={loading}
             />
           </div>
 
           <div>
             <label className="text-sm font-medium">Password</label>
-            <Input
-              type="password"
-              placeholder="•••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="•••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={loading}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <Button className="w-full" onClick={login}>
-            Login
+          <Button className="w-full" onClick={login} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
+
+          {process.env.NODE_ENV === "development" && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleAutoFill}
+              disabled={loading}
+              type="button"
+            >
+              🔧 Auto-fill Admin (Dev)
+            </Button>
+          )}
         </div>
       </div>
     </div>
