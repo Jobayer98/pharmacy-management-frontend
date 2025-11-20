@@ -39,3 +39,8 @@ export const getSales = async () => {
   const response = await api.get('/sales');
   return response.data.data.items as SaleResponse[];
 }
+
+export const getSaleDetails = async (saleId: number) => {
+  const response = await api.get(`/sales/${saleId}`);
+  return response.data.data;
+}

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSalesByYear } from "@/lib/api/dashboard";
+import { getSaleDetails } from "@/lib/api/sale";
+import { getPharmacy } from "@/lib/api/settings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { InvoiceModal } from "@/components/sales/InvoiceModal";
 import {
   BarChart,
   Bar,
@@ -19,11 +22,18 @@ export default function SalesPage() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [currentPage, setCurrentPage] = useState(1);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const limit = 10;
 
   const { data, isLoading } = useQuery({
     queryKey: ["sales", selectedYear, currentPage, limit],
     queryFn: () => getSalesByYear(selectedYear, currentPage, limit),
+  });
+
+  const { data: pharmacyData } = useQuery({
+    queryKey: ["pharmacy"],
+    queryFn: getPharmacy,
   });
 
   const yearSummary = data?.year_summary;
@@ -54,6 +64,34 @@ export default function SalesPage() {
   const handleNextPage = () => {
     if (pagination && currentPage < pagination.pages) {
       setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleViewInvoice = async (sale: any) => {
+    try {
+      // Fetch full sale details from API
+      const saleDetails = await getSaleDetails(sale.id);
+
+      // Transform API response to invoice format
+      const invoiceData = {
+        id: saleDetails.id,
+        invoice_number: saleDetails.invoice_number,
+        date: saleDetails.sale_date,
+        customer: saleDetails.customer_name,
+        items: saleDetails.items.map((item: any) => ({
+          name: `${item.medicine_name} ${item.medicine_strength}`,
+          qty: item.quantity,
+          price: item.selling_price,
+        })),
+        subtotal: saleDetails.subtotal,
+        discount: saleDetails.discount_amount,
+        total: saleDetails.total_amount,
+      };
+
+      setSelectedInvoice(invoiceData);
+      setInvoiceModalOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch sale details:", error);
     }
   };
 
@@ -240,6 +278,7 @@ export default function SalesPage() {
                       <th className="text-right py-3 px-4">Discount</th>
                       <th className="text-right py-3 px-4">Sub-total Amount</th>
                       <th className="text-right py-3 px-4">Total Amount</th>
+                      <th className="text-center py-3 px-4">Invoice</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -258,6 +297,28 @@ export default function SalesPage() {
                         </td>
                         <td className="py-3 px-4 text-right font-semibold">
                           ৳ {sale.total_amount}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewInvoice(sale)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -334,6 +395,14 @@ export default function SalesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        open={invoiceModalOpen}
+        onOpenChange={setInvoiceModalOpen}
+        invoiceData={selectedInvoice}
+        pharmacyInfo={pharmacyData}
+      />
     </div>
   );
 }

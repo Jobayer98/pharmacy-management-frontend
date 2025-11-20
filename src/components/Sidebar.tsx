@@ -73,13 +73,6 @@ const NAV_ITEMS: NavItem[] = [
     roles: ["admin", "sales"],
   },
   {
-    key: "invoice",
-    label: "Invoice",
-    href: "/invoice",
-    icon: "Receipt",
-    roles: ["admin", "sales"],
-  },
-  {
     key: "settings",
     label: "Settings",
     href: "/settings",

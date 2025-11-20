@@ -54,7 +54,7 @@ export const MedicineSearch: React.FC = () => {
             className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-800"
           >
             <div>
-              <p className="font-medium">{m.name}</p>
+              <p className="font-medium">{`${m.name} ${m.strength}`}</p>
               <p className="text-sm text-muted-foreground">৳ {m.price}</p>
             </div>
 
