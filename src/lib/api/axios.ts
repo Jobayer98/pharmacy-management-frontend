@@ -2,7 +2,7 @@ import axios from "axios";
 import { useUserStore } from "@/store/useUserStore";
 
 const api = axios.create({
-    baseURL: "http://localhost:8000", // your FastAPI base URL
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
     withCredentials: true,
 });
 
