@@ -87,6 +87,6 @@ export async function getMedicineDetail(id: number) {
 
 // BULK CREATE MEDICINES
 export async function createMedicinesBulk(medicines: MedicinePayload[]) {
-    const res = await api.post("/medicines/bulk-create", { medicines });
+    const res = await api.post("/medicines/bulk-create", medicines);
     return res.data.data;
 }

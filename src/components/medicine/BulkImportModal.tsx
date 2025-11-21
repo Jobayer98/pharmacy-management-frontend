@@ -32,6 +32,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ["medicines"] });
       setSelectedFile(null);
       setPreviewData(null);
+      ``;
       onClose();
     },
     onError: (err: any) => {

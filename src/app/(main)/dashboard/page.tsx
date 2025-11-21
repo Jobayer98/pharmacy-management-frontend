@@ -142,7 +142,7 @@ export default function DashboardPage() {
       {/* Inventory small cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Low Stock Card */}
-        <Card className="border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Near Expiry Card */}
-        <Card className="border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Expired Items Card */}
-        <Card className="border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -265,7 +265,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Stock Value Card */}
-        <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
