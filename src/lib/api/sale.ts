@@ -80,3 +80,32 @@ export const getPOSMedicines = async (page: number = 1, limit: number = 20, sear
   const response = await api.get(`/sales/pos/medicines?${params.toString()}`);
   return response.data.data as POSMedicinesResponse;
 }
+
+// DOWNLOAD INVOICE PDF
+export const downloadInvoice = async (saleId: number) => {
+  const response = await api.get(`/invoice/sale/${saleId}`, {
+    responseType: 'blob',
+  });
+
+  // Extract filename from content-disposition header
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = `invoice_${saleId}.pdf`;
+
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename=(.+)/);
+    if (filenameMatch && filenameMatch[1]) {
+      filename = filenameMatch[1].replace(/['"]/g, '');
+    }
+  }
+
+  // Create blob and download
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}

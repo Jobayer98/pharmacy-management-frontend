@@ -12,7 +12,7 @@ type NavItem = {
   label: string;
   href: string;
   icon: Parameters<typeof RenderIcon>[0]["name"];
-  roles?: Array<"admin" | "manager" | "sales">; // optional: allowed roles
+  roles?: Array<"admin" | "manager" | "staff">; // optional: allowed roles
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -21,14 +21,14 @@ const NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: "LayoutDashboard",
-    roles: ["admin", "manager", "sales"],
+    roles: ["admin", "manager", "staff"],
   },
   {
     key: "medicine",
     label: "Medicine",
     href: "/medicine",
     icon: "Pill",
-    roles: ["admin", "manager"],
+    roles: ["admin", "manager", "staff"],
   },
   {
     key: "supplier",
@@ -63,14 +63,14 @@ const NAV_ITEMS: NavItem[] = [
     label: "POS",
     href: "/pos",
     icon: "TrendingUp",
-    roles: ["admin", "sales"],
+    roles: ["admin", "staff"],
   },
   {
     key: "sales",
     label: "Sales",
     href: "/sales",
     icon: "BarChart3",
-    roles: ["admin", "sales"],
+    roles: ["admin", "staff"],
   },
   {
     key: "settings",

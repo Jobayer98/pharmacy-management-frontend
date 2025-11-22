@@ -7,6 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { downloadInvoice } from "@/lib/api/sale";
+import { toast } from "sonner";
+import { Download } from "lucide-react";
 
 interface InvoiceItem {
   name: string;
@@ -15,7 +18,7 @@ interface InvoiceItem {
 }
 
 interface InvoiceData {
-  id: string;
+  id: number;
   invoice_number: string;
   date: string;
   customer: string;
@@ -47,6 +50,19 @@ export function InvoiceModal({
   pharmacyInfo,
 }: InvoiceModalProps) {
   if (!invoiceData) return null;
+
+  const handleDownload = async () => {
+    try {
+      toast.loading("Downloading invoice...");
+      await downloadInvoice(invoiceData.id);
+      toast.dismiss();
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      toast.dismiss();
+      toast.error("Failed to download invoice");
+      console.error("Failed to download invoice:", error);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -135,8 +151,12 @@ export function InvoiceModal({
           )}
 
           {/* Download */}
-          <div className="mt-6 text-right">
-            <Button onClick={() => alert("PDF download coming soon")}>
+          <div className="mt-6 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            <Button onClick={handleDownload}>
+              <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
           </div>

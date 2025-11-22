@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSalesByYear } from "@/lib/api/dashboard";
-import { getSaleDetails } from "@/lib/api/sale";
+import { getSaleDetails, downloadInvoice } from "@/lib/api/sale";
 import { getPharmacy } from "@/lib/api/settings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { InvoiceModal } from "@/components/sales/InvoiceModal";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -103,6 +105,19 @@ export default function SalesPage() {
       setInvoiceModalOpen(true);
     } catch (error) {
       console.error("Failed to fetch sale details:", error);
+    }
+  };
+
+  const handleDownloadInvoice = async (saleId: number) => {
+    try {
+      toast.loading("Downloading invoice...");
+      await downloadInvoice(saleId);
+      toast.dismiss();
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      toast.dismiss();
+      toast.error("Failed to download invoice");
+      console.error("Failed to download invoice:", error);
     }
   };
 
@@ -299,7 +314,7 @@ export default function SalesPage() {
                       <th className="text-right py-3 px-4">Discount</th>
                       <th className="text-right py-3 px-4">Sub-total Amount</th>
                       <th className="text-right py-3 px-4">Total Amount</th>
-                      <th className="text-center py-3 px-4">Invoice</th>
+                      <th className="text-center py-3 px-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -319,27 +334,45 @@ export default function SalesPage() {
                         <td className="py-3 px-4 text-right font-semibold">
                           ৳ {sale.total_amount}
                         </td>
-                        <td className="py-3 px-4 text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewInvoice(sale)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                        <td className="py-3 px-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewInvoice(sale)}
+                              className="h-8 w-8 p-0"
+                              title="View Invoice"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                              />
-                            </svg>
-                          </Button>
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadInvoice(sale.id)}
+                              className="h-8 w-8 p-0"
+                              title="Download Invoice PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
