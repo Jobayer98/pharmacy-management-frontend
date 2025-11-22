@@ -44,3 +44,39 @@ export const getSaleDetails = async (saleId: number) => {
   const response = await api.get(`/sales/${saleId}`);
   return response.data.data;
 }
+
+export interface POSMedicine {
+  id: number;
+  name: string;
+  brand: string | null;
+  category: string | null;
+  strength: string;
+  price: number;
+  expiry_date: string;
+  barcode: string | null;
+  quantity: number;
+}
+
+export interface POSMedicinesResponse {
+  items: POSMedicine[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
+
+export const getPOSMedicines = async (page: number = 1, limit: number = 20, search?: string) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+
+  if (search) {
+    params.append('search', search);
+  }
+
+  const response = await api.get(`/sales/pos/medicines?${params.toString()}`);
+  return response.data.data as POSMedicinesResponse;
+}
