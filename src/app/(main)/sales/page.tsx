@@ -26,8 +26,15 @@ export default function SalesPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const limit = 10;
 
+  // API call for chart data (all data without pagination)
+  const { data: chartData, isLoading: isLoadingChart } = useQuery({
+    queryKey: ["sales-chart", selectedYear],
+    queryFn: () => getSalesByYear(selectedYear, 1, 10000),
+  });
+
+  // API call for paginated list
   const { data, isLoading } = useQuery({
-    queryKey: ["sales", selectedYear, currentPage, limit],
+    queryKey: ["sales-list", selectedYear, currentPage, limit],
     queryFn: () => getSalesByYear(selectedYear, currentPage, limit),
   });
 
@@ -43,19 +50,23 @@ export default function SalesPage() {
   // Generate year options (last 5 years)
   const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
-  // Prepare monthly data for chart (aggregate by month)
-  const monthlyData = salesItems.reduce((acc, sale) => {
-    const month = new Date(sale.sale_date).toLocaleString("default", {
-      month: "short",
-    });
-    const existing = acc.find((item) => item.month === month);
-    if (existing) {
-      existing.amount += sale.total_amount;
-    } else {
-      acc.push({ month, amount: sale.total_amount });
-    }
-    return acc;
-  }, [] as { month: string; amount: number }[]);
+  // Prepare monthly data for chart from all sales data
+  const allSalesForChart = chartData?.items ?? [];
+  const monthlyData = allSalesForChart
+    .reduce((acc, sale) => {
+      const date = new Date(sale.sale_date);
+      const monthIndex = date.getMonth();
+      const monthName = date.toLocaleString("default", { month: "short" });
+
+      const existing = acc.find((item) => item.monthIndex === monthIndex);
+      if (existing) {
+        existing.amount += sale.total_amount;
+      } else {
+        acc.push({ month: monthName, monthIndex, amount: sale.total_amount });
+      }
+      return acc;
+    }, [] as { month: string; monthIndex: number; amount: number }[])
+    .sort((a, b) => a.monthIndex - b.monthIndex);
 
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -245,17 +256,27 @@ export default function SalesPage() {
             </h3>
           </div>
 
-          <div style={{ width: "100%", height: 300 }}>
-            <ResponsiveContainer>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="amount" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {isLoadingChart ? (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              Loading chart...
+            </div>
+          ) : monthlyData.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No sales data available for {selectedYear}
+            </div>
+          ) : (
+            <div style={{ width: "100%", height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="amount" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
 

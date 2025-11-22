@@ -1,10 +1,19 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getMedicineDetail } from "@/lib/api/medicine";
+import { getMedicineDetail, getAlternativeMedicines } from "@/lib/api/medicine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Package, Pill, Building2, Tag, Barcode, Image as ImageIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Pill,
+  Building2,
+  Tag,
+  Barcode,
+  Image as ImageIcon,
+  Sparkles,
+} from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
 export default function MedicineDetailPage() {
@@ -12,9 +21,19 @@ export default function MedicineDetailPage() {
   const params = useParams();
   const medicineId = parseInt(params.id as string);
 
-  const { data: medicine, isLoading, isError } = useQuery({
+  const {
+    data: medicine,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["medicine-detail", medicineId],
     queryFn: () => getMedicineDetail(medicineId),
+  });
+
+  const { data: alternatives, isLoading: isLoadingAlternatives } = useQuery({
+    queryKey: ["alternative-medicines", medicine?.generic_name, medicineId],
+    queryFn: () => getAlternativeMedicines(medicine!.generic_name!, medicineId),
+    enabled: !!medicine?.generic_name,
   });
 
   if (isLoading) {
@@ -136,7 +155,9 @@ export default function MedicineDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Barcode</p>
-                      <p className="font-medium font-mono">{medicine.barcode}</p>
+                      <p className="font-medium font-mono">
+                        {medicine.barcode}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -146,41 +167,98 @@ export default function MedicineDetailPage() {
         </CardContent>
       </Card>
 
-      {/* AI Suggested Alternatives Section - Placeholder */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-              <svg
-                className="h-5 w-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
+      {/* Alternative Medicines Section */}
+      {medicine.generic_name && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold">Alternative Medicines</h3>
+              <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded">
+                Same Generic
+              </span>
             </div>
-            <h3 className="text-lg font-semibold">AI Suggested Alternative Brands</h3>
-            <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded">
-              Coming Soon
-            </span>
-          </div>
 
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-lg p-6 text-center">
-            <p className="text-muted-foreground">
-              AI-powered alternative medicine suggestions will be available here soon.
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Get smart recommendations for alternative brands with the same generic composition.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            {isLoadingAlternatives ? (
+              <div className="py-8 text-center text-muted-foreground">
+                Loading alternatives...
+              </div>
+            ) : alternatives && alternatives.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {alternatives.map((alt) => (
+                  <Card
+                    key={alt.id}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/medicine/${alt.id}`)}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-semibold text-lg">{alt.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {alt.generic_name}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                          {alt.brand && (
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span>{alt.brand}</span>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <Pill className="h-4 w-4 text-muted-foreground" />
+                            <span>{alt.strength}</span>
+                          </div>
+
+                          {alt.category && (
+                            <div className="flex items-center gap-2">
+                              <Tag className="h-4 w-4 text-muted-foreground" />
+                              <span>{alt.category}</span>
+                            </div>
+                          )}
+
+                          <div className="pt-2 border-t dark:border-zinc-800">
+                            <p className="text-lg font-bold text-green-600 dark:text-green-500">
+                              ৳ {alt.price}
+                            </p>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/medicine/${alt.id}`);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 dark:bg-zinc-800 rounded-lg p-6 text-center">
+                <p className="text-muted-foreground">
+                  No alternative medicines found with the same generic name.
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Generic:{" "}
+                  <span className="font-medium">{medicine.generic_name}</span>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

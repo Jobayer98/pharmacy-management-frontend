@@ -90,3 +90,23 @@ export async function createMedicinesBulk(medicines: MedicinePayload[]) {
     const res = await api.post("/medicines/bulk-create", medicines);
     return res.data.data;
 }
+
+// GET ALTERNATIVE MEDICINES (by generic name)
+export async function getAlternativeMedicines(genericName: string, currentMedicineId: number, limit: number = 3) {
+    const res = await api.get(`/medicines`, {
+        params: {
+            search: genericName,
+            page: 1,
+            limit: 100, // Get more to filter out current medicine
+        }
+    });
+
+    const data = res.data.data as MedicinePaginationResponse;
+
+    // Filter out the current medicine and limit results
+    const alternatives = data.items
+        .filter(med => med.id !== currentMedicineId && med.generic_name?.toLowerCase() === genericName.toLowerCase())
+        .slice(0, limit);
+
+    return alternatives;
+}
