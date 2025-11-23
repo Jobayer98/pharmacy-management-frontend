@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [_hasHydrated, token, pathname, router, isTokenExpired, logout]);
 
-  // Auto token refresh - check every 30 seconds
+  // Proactive token refresh - check every 2 minutes
   useEffect(() => {
     if (!token) return;
 
@@ -74,17 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // No payload needed - refresh token is in HttpOnly cookie
           const response = await refreshTokenApi();
           updateToken(response.access_token, response.expires_in);
-          console.log("Token refreshed successfully");
+          console.log("Token refreshed proactively");
         } catch (error: any) {
-          console.error("Token refresh failed:", error);
-          // If refresh fails, logout user
-          if (
-            error?.response?.status === 401 ||
-            error?.response?.status === 400
-          ) {
-            toast.error("Session expired. Please login again.");
-            logout();
-          }
+          console.error("Proactive token refresh failed:", error);
+          // Don't logout here - let axios interceptor handle it on next API call
         } finally {
           isRefreshing.current = false;
         }
@@ -94,11 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check immediately
     handleTokenRefresh();
 
-    // Then check every 30 seconds
-    const interval = setInterval(handleTokenRefresh, 30000);
+    // Then check every 2 minutes (less aggressive since axios handles reactive refresh)
+    const interval = setInterval(handleTokenRefresh, 120000);
 
     return () => clearInterval(interval);
-  }, [token, shouldRefreshToken, updateToken, logout]);
+  }, [token, shouldRefreshToken, updateToken]);
 
   // Auto logout check if token is expired
   useEffect(() => {
