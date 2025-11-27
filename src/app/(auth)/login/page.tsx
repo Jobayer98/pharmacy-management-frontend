@@ -118,17 +118,15 @@ export default function LoginPage() {
             )}
           </Button>
 
-          {process.env.NODE_ENV === "development" && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleAutoFill}
-              disabled={loading}
-              type="button"
-            >
-              🔧 Auto-fill Admin (Dev)
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleAutoFill}
+            disabled={loading}
+            type="button"
+          >
+            🔧 Auto-fill Admin (Dev)
+          </Button>
         </div>
       </div>
     </div>
